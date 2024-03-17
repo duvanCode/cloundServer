@@ -13,11 +13,16 @@ app.post('/createFile', auth, (req, res) => {
   res.json({ message: 'Success! You have accessed a protected resource.' });
 });
 
-app.post('/singIn',(req, res) => {
+app.post('/singIn',async (req, res) => {
+
   const { error } = validate.validate(req.query);
+
   if (error) return res.status(400).json({ error: error.details[0].message });
-  let token = singIn(req.params.userName);
-  res.json({ token:token });
+
+  let estadoSing = await singIn(req.query.userName);
+
+  res.json(estadoSing);
+
 });
 
 module.exports = app;

@@ -1,0 +1,4 @@
+{
+  "exec": "node -r dotenv/config app.js",
+  "ignore": [".env"]
+}

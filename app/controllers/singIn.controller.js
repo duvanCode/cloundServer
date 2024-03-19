@@ -8,7 +8,6 @@ async function singIn(userName) {
 
     let userGet = await getDocuments({ userName: userName },process.env.MONGO_COLLECTION_USER);
 
-    
     if (userGet.length > 0 ){
         return { status: 'error', mjs: 'usuario ya registrado' };
     }
@@ -19,7 +18,7 @@ async function singIn(userName) {
         userName: userName,
         token: token
     }
-    console.log(process.env.MONGO_COLLECTION_USER);
+    
     let id = await insertDocument(user,process.env.MONGO_COLLECTION_USER);
 
 

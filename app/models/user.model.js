@@ -48,10 +48,16 @@ async function getDocuments(query = {},colectionName) {
     }
 }
 
+function esIdMongoValido(id) {
+    const regex = /^[0-9a-fA-F]{24}$/;
+    return regex.test(id);
+}
+
 async function getDocumentById(id,colectionName) {
     try {
         const db = await connectDB();
         const collection = db.collection(colectionName);
+        if(!esIdMongoValido(id)) return false;
         return await collection.findOne({ _id: ObjectID(id) });
     } finally {
         await closeDB();

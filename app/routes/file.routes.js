@@ -2,43 +2,92 @@ const express = require('express');
 const Joi = require('joi');
 const auth = require('../controllers/auth.controller.js');
 const singIn = require('../controllers/singIn.controller.js');
-const { getFile,setFile } = require('../controllers/file.controller.js');
+const { getFile, setFile } = require('../controllers/file.controller.js');
+const axios = require('axios');
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
-const validate = Joi.object({
-  userName: Joi.string().required()
-});
 
 var app = express();
 
 app.post('/createFile', auth, async (req, res) => {
-  const userId = req.userId;
-  await setFile(req.file,userId);
-  res.json({ message: 'Success! You have accessed a protected resource.' + userId });
+  try {
+    const validate = Joi.object({
+      file: Joi.binary().required()
+    });
+
+    const { error } = validate.validate(req.body);
+
+    if (error) return res.status(400).json({ error: error.details[0].message });
+
+    const uploadSingle = upload.single('file');
+
+    uploadSingle(req, res, async (err) => {
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+
+      const serverUrl = `${req.protocol}://${req.get('host')}`;
+      const userId = req.userId;
+      let result = await setFile(req.file, userId, serverUrl);
+
+      res.json(result);
+    });
+
+  } catch (error) {
+    res.status(400).json({ message: 'missed file' });
+    console.log();
+  }
 });
 
-app.post('/getFiles', auth, (req, res) => {
-  const userId = req.userId;
-  let query = { userId:userId };
-  res.json({ message: 'Success! You have accessed a protected resource.' + userId });
+app.get('/getFile/:id', async (req, res) => {
+  try {
+
+    const fileId = req.params.id;
+    let url = await getFile(fileId);
+
+    if (!url) {
+      res.status(404).json({ message: 'Not found' });
+      return
+    }
+
+    const response = await axios.get(url, {
+      responseType: 'arraybuffer'
+    });
+    res.set('Content-Disposition', response.headers['content-disposition']);
+    res.set('Content-Type', response.headers['content-type']);
+    res.set('Content-Length', response.headers['content-length']);
+
+    res.send(response.data);
+
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ message: 'Not found' });
+  }
+
 });
 
-app.get('/getFile/:id',async (req, res) => {
-  const fileId = req.params.id;
-  let message = await getFile(fileId);
-  //let query = { _id:fileId };
-  console.log(message);
-  res.json({ message: 'Success! You have accessed a protected resource.' + fileId });
-});
+app.post('/singIn', async (req, res) => {
+  try {
 
-app.post('/singIn',async (req, res) => {
+    const validate = Joi.object({
+      userName: Joi.string().required()
+    });
+  
+    const { error } = validate.validate(req.query);
+  
+    if (error) return res.status(400).json({ error: error.details[0].message });
+  
+    let estadoSing = await singIn(req.query.userName);
+  
+    res.json(estadoSing);
 
-  const { error } = validate.validate(req.query);
+  } catch (error) {
 
-  if (error) return res.status(400).json({ error: error.details[0].message });
-
-  let estadoSing = await singIn(req.query.userName);
-
-  res.json(estadoSing);
+    res.status(500).json({ message: 'Error' });
+    console.log(error);
+  }
 
 });
 

@@ -9,6 +9,13 @@ const options = {
       license: {},
       contact: {}
     },
+    securityDefinitions: {
+      bearerAuth: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'Authorization'
+      }
+    },
     servers: [
       {
         url: 'http://localhost:3000'

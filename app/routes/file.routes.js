@@ -16,19 +16,13 @@ app.use(express.json());
 
 app.post('/createFile', auth, async (req, res) => {
   try {
-    const validate = Joi.object({
-      file: Joi.binary().required()
-    });
-
-    const { error } = validate.validate(req.body);
-
-    if (error) return res.status(400).json({ error: error.details[0].message });
 
     const uploadSingle = upload.single('file');
 
     uploadSingle(req, res, async (err) => {
-      if (err) {
-        return res.status(400).json({ error: err.message });
+
+      if (!(req.file)) {
+        return res.status(400).json({ error: 'missed file' });
       }
 
       const serverUrl = `${req.protocol}://${req.get('host')}`;

@@ -4,12 +4,12 @@ const jwt = require('jsonwebtoken');
 
 const { insertDocument, getDocuments } = require('../models/user.model.js');
 
-async function singIn(userName) {
+async function register(userName) {
 
     let userGet = await getDocuments({ userName: userName },process.env.MONGO_COLLECTION_USER);
 
     if (userGet.length > 0 ){
-        return { status: 'error', mjs: 'usuario ya registrado' };
+        return { error: 'usuario ya registrado' };
     }
 
     var token = jwt.sign({ user: userName }, process.env.JWT_SECRET);
@@ -22,9 +22,9 @@ async function singIn(userName) {
     let id = await insertDocument(user,process.env.MONGO_COLLECTION_USER);
 
 
-    if (!id) return { status: 'error', mjs: 'error creando el usuario' };
+    if (!id) return { error: 'error creando el usuario' };
 
-    return { status: 'ok', token: token };
+    return { token: token };
 }
 
-module.exports = singIn;
+module.exports = register;

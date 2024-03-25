@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { insertDocument,getDocumentById } = require('../models/user.model.js');
-const { setNewUrlUload,getTokenFile,sendMessage } = require('../services/file.service.js');
+const { sendMessageTelegram,getFileById } = require('../services/file.service.js');
 
 const getFile = async (messageId) => {
 
@@ -10,21 +10,23 @@ const getFile = async (messageId) => {
         return false;
     }
 
-    return fileObject.url;
+    return fileObject;
 
 }
 
 const setFile = async (file,userID,serverUrl) => {
 
-    let url = await setNewUrlUload();
-    let token = await getTokenFile(url,file);
-    let message =await sendMessage(token,userID);
-    if(!message){
-        return false;
-    }
+    let message = await sendMessageTelegram(file);
+    
+    if(!message) return false;
 
-    const fileObject = { 
-        url:message.message.body.attachments[0].payload.url,
+    let fileCurrent = await getFileById(message.fileID);
+    
+    if(!file) return false;
+
+    const fileObject = {
+        fileName:message.name,
+        url:`${process.env.TELEGRAM_API_URL}/file/bot${process.env.TELEGRAM_API_TOKEN}/${fileCurrent.file_path}`,
         usuarioID:userID
     };
 

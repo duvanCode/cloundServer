@@ -2,33 +2,128 @@ require('dotenv').config();
 const axios = require('axios');
 const FormData = require('form-data');
 
-const getFileService = async (id) => {
-    try {
+const sendMessageTelegram = async (file) =>{
+    try{
+        let url = `${process.env.TELEGRAM_API_URL}/bot${process.env.TELEGRAM_API_TOKEN}/sendDocument`;
+        const formData = new FormData();
+        
+        formData.append('chat_id', process.env.TELEGRAM_CHAT_ID);
+        formData.append('document', file.buffer, file.originalname);
+        const response = await axios.post(url,formData, {
+            headers: formData.getHeaders()
+        });
 
-        const response = await axios.get(`https://botapi.tamtam.chat/messages?access_token=${process.env.TAM_TAM_API}&message_ids=${id}`);
+        if(response.status == 403){
 
-        if (response.status !== 200) {
+          console.error('Error en la respuesta del servicio:', response.status);
+          return false;
+
+        }else if (response.status !== 200) {
             console.error('Error en la respuesta del servicio:', response.status);
-            return;
+            return false;
         }
 
-        const data = response.data;
+        let data = response.data;
 
-        return data;
+        if(!(data.ok)){
+            console.error('Error enviando mensaje');
+            return false;
+        }
 
-    } catch (error) {
 
-        console.error('Error al consumir el servicio:', error);
+        const fileObject = getFileObject(data);
+
+        return fileObject;
+
+    } catch (error){
+
+        console.error('Error en sendMessageTelegram', error);
 
     }
-
-    return result;
 }
+
+const getFileObject = (data) => {
+    let name,fileID;
+
+    if(data.result.document != undefined){
+        name = data.result.document.file_name;
+        fileID = data.result.document.file_id;
+    }
+
+    if(data.result.video != undefined){
+        name = data.result.video.file_name;
+        fileID = data.result.video.file_id;
+    }
+
+    if(data.result.photo != undefined){
+        name = data.result.photo.file_name;
+        fileID = data.result.photo.file_id;
+    }
+
+    if(data.result.audio != undefined){
+        name = data.result.audio.file_name;
+        fileID = data.result.audio.file_id;
+    }
+
+    if(data.result.animation != undefined){
+        name = data.result.animation.file_name;
+        fileID = data.result.animation.file_id;
+    }
+
+    if(data.result.voice != undefined){
+        name = data.result.voice.file_name;
+        fileID = data.result.voice.file_id;
+    }
+
+    return {
+        name:name,
+        fileID:fileID
+    }
+
+}
+
+const getFileById = async (id) => {
+    try{
+        
+        let url = `${process.env.TELEGRAM_API_URL}/bot${process.env.TELEGRAM_API_TOKEN}/getFile?file_id=${id}`;
+
+        const response = await axios.get(url);
+
+        if(response.status == 403){
+
+          console.error('Error en la respuesta del servicio:', response.status);
+          return false;
+
+        }else if (response.status !== 200) {
+            console.error('Error en la respuesta del servicio:', response.status);
+            return false;
+        }
+
+        let data = response.data;
+
+        if(!(data.ok)){
+            console.error('Error enviando mensaje');
+            return false;
+        }
+
+        const fileObject = {
+            file_path:data.result.file_path
+        }
+
+        return fileObject;
+
+    } catch (error){
+
+        console.error('Error en getFileById', error);
+
+    }
+}
+
 
 const sendMessage = async (token,userID) => {
     try{
         const jsonData = {
-            "text": "archivo de "+userID,
+            "text": "archivo de " + userID,
             "attachments": [
               {
                 "type": "file",
@@ -63,7 +158,7 @@ const sendMessage = async (token,userID) => {
       }
 }
 
-const setNewUrlUload = async () =>{
+const setNewUrlUload = async () => {
     try {
         const response = await axios.post(`${process.env.TAM_TAM_API_URL}/uploads?access_token=${process.env.TAM_TAM_API}&type=file`);
 
@@ -92,7 +187,8 @@ const getTokenFile = async (url,file) => {
 
         if(response.status == 403){
 
-
+          console.error('Error en la respuesta del servicio:', response.status);
+          return;
 
         }if (response.status !== 200) {
             console.error('Error en la respuesta del servicio:', response.status);
@@ -110,4 +206,4 @@ const getTokenFile = async (url,file) => {
     }
 }
 
-module.exports = { getFileService,setNewUrlUload,getTokenFile,sendMessage };
+module.exports = { setNewUrlUload,getTokenFile,sendMessage,sendMessageTelegram,getFileById };

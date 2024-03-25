@@ -7,6 +7,8 @@ const axios = require('axios');
 const multer = require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+const { PassThrough } = require('stream');
+
 
 
 var app = express();
@@ -34,35 +36,32 @@ app.post('/createFile', auth, async (req, res) => {
 
   } catch (error) {
     res.status(400).json({ error: 'missed file' });
-    console.log();
   }
+  
 });
 
 app.get('/getFile/:id', async (req, res) => {
   try {
-
     const fileId = req.params.id;
-    let url = await getFile(fileId);
+    const file = await getFile(fileId);
 
-    if (!url) {
+    if (!file) {
       res.status(404).json({ error: 'Not found' });
-      return
+      return;
     }
 
-    const response = await axios.get(url, {
-      responseType: 'arraybuffer'
-    });
-    res.set('Content-Disposition', response.headers['content-disposition']);
+    const response = await axios.get(file.url, { responseType: 'stream' });
+
+    res.set('Content-Disposition', `attachment; filename="${file.fileName}"`);
     res.set('Content-Type', response.headers['content-type']);
     res.set('Content-Length', response.headers['content-length']);
 
-    res.send(response.data);
+    response.data.pipe(res);
 
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(404).json({ error: 'Not found' });
   }
-
 });
 
 app.post('/register', async (req, res) => {

@@ -1,6 +1,6 @@
 const express = require('express');
 const Joi = require('joi');
-const auth = require('../controllers/auth.controller.js');
+const auth = require('../middlewares/auth.middleware.js');
 const register = require('../controllers/register.controller.js');
 const { getFile, setFile,asyncUpdateFile } = require('../controllers/file.controller.js');
 const { getFileById } = require('../services/file.service.js');

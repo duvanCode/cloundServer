@@ -70,7 +70,6 @@ const asyncUpdateFile = async (file,serviceObject) => {
     let buffer = file.buffer;
     let rageOfBuffer = splitBufferByBytes(buffer, getBytesCount());
     let part = 0;
-
     for (let range of rageOfBuffer) {
         try {
             let newBuffer = range;

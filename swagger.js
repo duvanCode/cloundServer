@@ -161,7 +161,7 @@ const options = {
           }
         }
       },
-      '/signIn': {
+      '/register': {
         post: {
           summary: 'Sing in a user',
           description: 'Sing in a user with the given user name.',

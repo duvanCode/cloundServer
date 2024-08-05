@@ -88,6 +88,7 @@ const asyncUpdateFile = async (file, serviceObject) => {
 
             if (!message) return false;
 
+            console.log('file part uploaded: ',(part + 1),' of ',rageOfBuffer.length);
             const filePartDetails = {
                 name: `file_part_${part}.txt`,
                 size: newBuffer.length,

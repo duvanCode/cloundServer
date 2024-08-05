@@ -155,6 +155,15 @@ const getFile = async (req, res) => {
         const fileId = req.params.id;
         const file = await getFileService(fileId);
 
+        if (!file) {
+            res.status(404).json({
+                "success": false,
+                "message": 'file no found',
+                "data": null
+            });
+            return;
+        };
+
         let partsize = Object.values(file.fileParts).reduce((total, valor) => total + valor.size, 0);
 
         if (partsize < file.originalSize) {

@@ -3,10 +3,10 @@ const axios = require('axios');
 const FormData = require('form-data');
 
 const sendMessageTelegram = async (file) =>{
+    
     try{
         let url = `${process.env.TELEGRAM_API_URL}/bot${process.env.TELEGRAM_API_TOKEN}/sendDocument`;
         const formData = new FormData();
-        
         formData.append('chat_id', process.env.TELEGRAM_CHAT_ID);
         formData.append('disable_notification', 'true');
         formData.append('document', file.buffer, file.originalname);

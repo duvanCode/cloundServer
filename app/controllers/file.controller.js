@@ -81,7 +81,7 @@ const asyncUpdateFile = async (file, serviceObject) => {
             let newBuffer = range;
             const newFile = {
                 buffer: newBuffer,
-                originalname: `file_part_${part}.txt`
+                originalname: `file_part_${(part+1)}_of_${rageOfBuffer.length}.txt`
             };
 
             let message = await sendMessageTelegram(newFile);
@@ -90,7 +90,7 @@ const asyncUpdateFile = async (file, serviceObject) => {
 
             console.log('file part uploaded: ',(part + 1),' of ',rageOfBuffer.length);
             const filePartDetails = {
-                name: `file_part_${part}.txt`,
+                name:  `file_part_${(part+1)}_of_${rageOfBuffer.length}.txt`,
                 size: newBuffer.length,
                 telegramFileID: message.fileID,
                 order: part
@@ -111,6 +111,7 @@ const asyncUpdateFile = async (file, serviceObject) => {
 const createFile = async (req, res) => {
     try {
 
+        console.log('fecha de peticion',formatearFecha(new Date()));
         const uploadSingle = upload.single('file');
 
         uploadSingle(req, res, async (err) => {
@@ -123,6 +124,7 @@ const createFile = async (req, res) => {
                 });
 
             }
+            console.log('fecha de archivo cargado',formatearFecha(new Date()));
 
             const serverUrl = `${req.protocol}://${req.get('host')}`;
             const userId = req.userId;
@@ -230,5 +232,20 @@ const getFile = async (req, res) => {
 
 
 };
+
+const formatearFecha = (fecha) => {
+    const opciones = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    };
+  
+    return new Intl.DateTimeFormat('sv-SE', opciones).format(fecha).replace(' ', 'T').replace('T', ' ');
+  }
+
 
 module.exports = { getFile, setFile, asyncUpdateFile, createFile };

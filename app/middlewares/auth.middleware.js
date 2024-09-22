@@ -1,6 +1,6 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
-const { insertDocument, getDocuments } = require('../models/user.model.js');
+const { insertDocument, getDocuments ,getDocumentById} = require('../models/user.model.js');
 
 const auth = async (req, res, next) => {
 
@@ -22,7 +22,21 @@ const auth = async (req, res, next) => {
         "data": null
       });
 
-      let userGet = await getDocuments({ userName: decoded.user }, process.env.MONGO_COLLECTION_USER);
+      let tokenData = await getDocuments({ guuID: decoded.guuID }, process.env.MONGO_COLLECTION_TOKENS);
+
+      if (tokenData.length <= 0) return res.status(403).json({
+        "success": false,
+        "message": "Invalid Token",
+        "data": null
+      });
+
+      if(haExpirado(tokenData[0].expirationDate))return res.status(403).json({
+        "success": false,
+        "message": "Token expirado",
+        "data": null
+      });
+      
+      let userGet = await getDocumentById(tokenData[0].userID, process.env.MONGO_COLLECTION_USER);
 
       if (userGet.length <= 0) return res.status(403).json({
         "success": false,
@@ -30,7 +44,8 @@ const auth = async (req, res, next) => {
         "data": null
       });
 
-      req.userId = userGet[0]._id;
+
+      req.userId = userGet._id;
       next();
 
     });
@@ -57,5 +72,13 @@ const getHeaderToken = (req) => {
   return token;
 
 }
+
+function haExpirado(expirationDate) {
+  const fechaActual = new Date();
+  const fechaExpiracion = new Date(expirationDate.replace(' ', 'T'));
+  
+  return fechaActual > fechaExpiracion;
+}
+
 
 module.exports = auth;

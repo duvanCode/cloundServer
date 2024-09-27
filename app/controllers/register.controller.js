@@ -249,7 +249,13 @@ const login = async (username,password) => {
 
     let estadoPass = await verificarContrasena(password,userGet[0].password);
 
-    if(!(estadoPass.success)) return estadoPass;
+    if(!(estadoPass.success)) return estadoPass; // State of validation
+
+    if(!(estadoPass.data)) return { // Data of validation
+        "success": false,
+        "message": 'Unauthorized',
+        "data": null
+    }
 
     let tokenUser = await generateUserToken(userGet[0]._id);
 

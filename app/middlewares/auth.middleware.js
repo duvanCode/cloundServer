@@ -32,7 +32,7 @@ const auth = async (req, res, next) => {
 
       if(haExpirado(tokenData[0].expirationDate))return res.status(403).json({
         "success": false,
-        "message": "Token expirado",
+        "message": "Expired token",
         "data": null
       });
       

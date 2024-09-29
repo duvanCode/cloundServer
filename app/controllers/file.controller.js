@@ -182,7 +182,8 @@ const getFile = async (req, res) => {
             return;
         }
 
-        res.set('Content-Disposition', `attachment; filename="${file.originalName}"`);
+        const nombreArchivoEncoded = encodeURIComponent(file.originalName);
+        res.set('Content-Disposition', `attachment; filename="${nombreArchivoEncoded}"; filename*=UTF-8''${nombreArchivoEncoded}`);
         res.set('Content-Type', mime.lookup(file.originalName));
 
         for (const filePart of file.fileParts) {
@@ -233,6 +234,41 @@ const getFile = async (req, res) => {
 
 };
 
+const getFileInfo = async (req, res) => {
+    try {
+        const fileId = req.params.id;
+        const file = await getFileService(fileId);
+
+        if (!file) {
+            res.status(404).json({
+                "success": false,
+                "message": 'file no found',
+                "data": null
+            });
+            return;
+        };
+
+        delete file.fileParts;
+
+        res.status(200).json({
+            "success": true,
+            "message": 'ok',
+            "data":file
+        });
+
+    } catch (error) {
+        console.error('Error en el proceso principal:', error);
+        res.status(500).json({
+            "success": false,
+            "message": 'server internal error',
+            "data": null
+        });
+    }
+
+
+};
+
+
 const formatearFecha = (fecha) => {
     const opciones = {
         year: 'numeric',
@@ -248,4 +284,4 @@ const formatearFecha = (fecha) => {
   }
 
 
-module.exports = { getFile, setFile, asyncUpdateFile, createFile };
+module.exports = { getFile, getFileInfo, setFile, asyncUpdateFile, createFile };

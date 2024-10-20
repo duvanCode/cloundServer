@@ -135,7 +135,13 @@ const createFile = async (req, res) => {
                 "success": true,
                 "message": 'the file is in queue',
                 "data": {
-                    url: result.url
+                    url: result.url,
+                    fileData:{
+                        originalName: req.file.originalname,
+                        usuarioID: userId,
+                        originalSize: req.file.size,
+                        fileParts: []
+                    }
                 }
             });
 

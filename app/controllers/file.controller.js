@@ -137,6 +137,7 @@ const createFile = async (req, res) => {
                 "data": {
                     url: result.url,
                     fileData:{
+                        _id:result.fileID,
                         originalName: req.file.originalname,
                         usuarioID: userId,
                         originalSize: req.file.size,

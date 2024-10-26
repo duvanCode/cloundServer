@@ -1,93 +1,105 @@
 require('dotenv').config();
-const { MongoClient, ObjectID } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 
-const uri = process.env.MONGO_SERVER;
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+class DatabaseConnection {
+    constructor() {
+        this.uri = process.env.MONGO_SERVER;
+        this.client = new MongoClient(this.uri, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+        this.dbName = process.env.MONGO_DB;
+        this.connection = null;
+    }
 
-let conn;
+    static getInstance() {
+        if (!DatabaseConnection.instance) {
+            DatabaseConnection.instance = new DatabaseConnection();
+        }
+        return DatabaseConnection.instance;
+    }
 
-async function connectDB() {
-    try {
-        conn = await client.connect();
-        console.log('Conexión exitosa a la base de datos');
-        return conn.db(process.env.MONGO_DB);
-    } catch (e) {
-        console.error('Error al conectar a la base de datos:', e);
-        throw e;
+    async connect() {
+        if (!this.connection) {
+            try {
+                const conn = await this.client.connect();
+                this.connection = conn.db(this.dbName);
+                console.log('Conexión exitosa a la base de datos');
+            } catch (error) {
+                console.error('Error al conectar a la base de datos:', error);
+                throw error;
+            }
+        }
+        return this.connection;
+    }
+
+    async close() {
+        if (this.connection) {
+            try {
+                await this.client.close();
+                this.connection = null;
+                console.log('Conexión cerrada');
+            } catch (error) {
+                console.error('Error al cerrar la conexión:', error);
+                throw error;
+            }
+        }
     }
 }
 
-async function closeDB() {
-    try {
-        await client.close();
-        console.log('Conexión cerrada');
-    } catch (e) {
-        console.error('Error al cerrar la conexión a la base de datos:', e);
-        throw e;
+// Funciones de operaciones con la base de datos
+class DatabaseOperations {
+    static async getCollection(collectionName) {
+        const db = await DatabaseConnection.getInstance().connect();
+        return db.collection(collectionName);
     }
-}
 
-async function insertDocument(document,colectionName) {
-    try {
-        const db = await connectDB();
-        const collection = db.collection(colectionName);
+    static esIdMongoValido(id) {
+        const regex = /^[0-9a-fA-F]{24}$/;
+        return regex.test(id);
+    }
+
+    static async insertDocument(document, collectionName) {
+        const collection = await this.getCollection(collectionName);
         const result = await collection.insertOne(document);
         return result.insertedId;
-    } finally {
-        await closeDB();
     }
-}
 
-async function getDocuments(query = {},colectionName) {
-    try {
-        const db = await connectDB();
-        const collection = db.collection(colectionName);
+    static async getDocuments(query = {}, collectionName) {
+        const collection = await this.getCollection(collectionName);
         return await collection.find(query).toArray();
-    } finally {
-        await closeDB();
+    }
+
+    static async getDocumentById(id, collectionName) {
+        if (!this.esIdMongoValido(id)) return false;
+        const collection = await this.getCollection(collectionName);
+        return await collection.findOne({ _id: new ObjectId(id) });
+    }
+
+    static async updateDocument(id, updatedFields, collectionName) {
+        const collection = await this.getCollection(collectionName);
+        return await collection.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: updatedFields }
+        );
+    }
+
+    static async deleteDocument(id, collectionName) {
+        const collection = await this.getCollection(collectionName);
+        return await collection.deleteOne({ _id: new ObjectId(id) });
     }
 }
 
-function esIdMongoValido(id) {
-    const regex = /^[0-9a-fA-F]{24}$/;
-    return regex.test(id);
-}
-
-async function getDocumentById(id,colectionName) {
-    try {
-        const db = await connectDB();
-        const collection = db.collection(colectionName);
-        if(!esIdMongoValido(id)) return false;
-        return await collection.findOne({ _id: ObjectID(id) });
-    } finally {
-        await closeDB();
-    }
-}
-
-async function updateDocument(id, updatedFields,colectionName) {
-    try {
-        const db = await connectDB();
-        const collection = db.collection(colectionName);
-        return await collection.updateOne({ _id: ObjectID(id) }, { $set: updatedFields });
-    } finally {
-        await closeDB();
-    }
-}
-
-async function deleteDocument(id,colectionName) {
-    try {
-        const db = await connectDB();
-        const collection = db.collection(colectionName);
-        return await collection.deleteOne({ _id: ObjectID(id) });
-    } finally {
-        await closeDB();
-    }
-}
+// Para cerrar la conexión cuando la aplicación se cierra
+process.on('SIGINT', async () => {
+    await DatabaseConnection.getInstance().close();
+    process.exit(0);
+});
 
 module.exports = {
-    insertDocument,
-    getDocuments,
-    getDocumentById,
-    updateDocument,
-    deleteDocument
+    insertDocument: DatabaseOperations.insertDocument.bind(DatabaseOperations),
+    getDocuments: DatabaseOperations.getDocuments.bind(DatabaseOperations),
+    getDocumentById: DatabaseOperations.getDocumentById.bind(DatabaseOperations),
+    updateDocument: DatabaseOperations.updateDocument.bind(DatabaseOperations),
+    deleteDocument: DatabaseOperations.deleteDocument.bind(DatabaseOperations)
 };

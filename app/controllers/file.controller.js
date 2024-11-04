@@ -141,6 +141,7 @@ const createFile = async (req, res) => {
                         originalName: req.file.originalname,
                         usuarioID: userId,
                         originalSize: req.file.size,
+                        nimeType:mime.lookup(req.file.originalname),
                         fileParts: []
                     }
                 }

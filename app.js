@@ -6,6 +6,6 @@ const options = require('./swagger.js');
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerJsdoc(options)));
 
-app.listen(3000, () => {
+app.listen(process.env.MONGO_SERVER, () => {
     console.log("servidor iniciado");
   });

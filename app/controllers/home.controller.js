@@ -5,4 +5,4 @@ const homeController = async (req, res) => {
         "data": null
     });
 }
-module.export = homeController;
+module.exports = { homeController };

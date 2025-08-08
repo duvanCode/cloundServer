@@ -6,6 +6,8 @@ const { getFile,getFileInfo, createFile } = require('../controllers/file.control
 const { homeController } = require('../controllers/home.controller.js');
 
 var app = express();
+//time out en min
+app.timeout = 10 * 60 * 1000;
 
 app.use(corsAuth);
 app.use(express.json());

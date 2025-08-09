@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   bot:
     build:
@@ -11,4 +10,13 @@ services:
       - RAILWAY_STATIC_URL=${RAILWAY_STATIC_URL}
       - PUBLIC_URL=${PUBLIC_URL}
       - PORT=${PORT:-1010}
+      # Nuevas variables para timeouts
+      - SERVER_TIMEOUT=${SERVER_TIMEOUT:-600000}        # 10 minutos default
+      - REQUEST_TIMEOUT=${REQUEST_TIMEOUT:-600000}       # 10 minutos default
+      - BODY_PARSER_LIMIT=${BODY_PARSER_LIMIT:-1024mb}    # 1024MB default
+      # Variables adicionales para Nginx si Dockploy lo usa
+      - NGINX_CLIENT_MAX_BODY_SIZE=${NGINX_CLIENT_MAX_BODY_SIZE:-200M}
+      - NGINX_PROXY_READ_TIMEOUT=${NGINX_PROXY_READ_TIMEOUT:-600s}
+      - NGINX_PROXY_CONNECT_TIMEOUT=${NGINX_PROXY_CONNECT_TIMEOUT:-600s}
+      - NGINX_PROXY_SEND_TIMEOUT=${NGINX_PROXY_SEND_TIMEOUT:-600s}
     restart: unless-stopped

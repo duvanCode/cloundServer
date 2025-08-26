@@ -4,13 +4,14 @@ const corsAuth = require('../middlewares/corsAuth.middleware.js');
 const { registerUser, loginUser} = require('../controllers/register.controller.js');
 const { getFile,getFileInfo, createFile } = require('../controllers/file.controller.js');
 const { homeController } = require('../controllers/home.controller.js');
-
+const contentSecurityPolicy = require('../middlewares/contentSecurityPolicy.middleware.js');
 var app = express();
 
 const SERVER_TIMEOUT = process.env.SERVER_TIMEOUT || (10 * 60 * 1000); // Default 10 min
 const BODY_LIMIT = process.env.BODY_PARSER_LIMIT || '1024mb';
 const REQUEST_TIMEOUT = process.env.REQUEST_TIMEOUT || (10 * 60 * 1000);
 
+app.use(contentSecurityPolicy);
 app.use(corsAuth);
 
 app.use(express.json({ 

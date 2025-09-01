@@ -125,9 +125,8 @@ const createFile = async (req, res) => {
 
             }
             console.log('fecha de archivo cargado',formatearFecha(new Date()));
-            console.log('Protocolo',req.protocol);
 
-            const serverUrl = `${req.protocol}://${req.get('host')}`;
+            const serverUrl = process.env.APP_URL;
             const userId = req.userId;
             let result = await setFile(req.file, userId, serverUrl);
             asyncUpdateFile(req.file, result);

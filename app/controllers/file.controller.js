@@ -191,6 +191,7 @@ const getFile = async (req, res) => {
         }
 
         const nombreArchivoEncoded = encodeURIComponent(file.originalName);
+        res.set('Access-Control-Allow-Origin','*');
         res.set('Content-Disposition', `attachment; filename="${nombreArchivoEncoded}"; filename*=UTF-8''${nombreArchivoEncoded}`);
         res.set('Content-Type', mime.lookup(file.originalName));
 
